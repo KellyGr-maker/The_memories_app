@@ -6,12 +6,15 @@ import {
   Button,
   Stack,
   Divider,
+  Paper,
 } from "@mui/material";
 
 import AppLayout from "../../components/Layouts/AppLayout";
+import { useEmployee } from "../../context/EmployeeContext";
 
 export default function DashboardPage() {
   const navigate = useNavigate();
+  const { currentEmployee } = useEmployee();
 
   const zoneButton = {
     height: 80,
@@ -45,10 +48,25 @@ export default function DashboardPage() {
         <Typography
           align="center"
           color="text.secondary"
-          mb={4}
+          mb={2}
         >
           Order App
         </Typography>
+
+        <Paper
+          sx={{
+            p: 2,
+            mb: 3,
+            textAlign: "center",
+            bgcolor: "#D4AF37",
+            color: "#000",
+            borderRadius: 3,
+          }}
+        >
+          <Typography fontWeight="bold">
+            👤 Ingelogd als: {currentEmployee?.name || "Geen medewerker"}
+          </Typography>
+        </Paper>
 
         <Stack spacing={2}>
           <Button

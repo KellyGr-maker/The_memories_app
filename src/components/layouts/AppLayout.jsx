@@ -14,6 +14,8 @@ export default function AppLayout({ children }) {
   const location = useLocation();
   const { zone } = useParams();
 
+  const showBackButton = location.pathname !== "/";
+
   function goBack() {
     if (location.pathname.startsWith("/order")) {
       navigate(`/tables/${zone || "terras"}`);
@@ -50,16 +52,20 @@ export default function AppLayout({ children }) {
         }}
       >
         <Toolbar>
-          <Button
-            color="inherit"
-            startIcon={<ArrowBackIcon />}
-            onClick={goBack}
-          />
+          {showBackButton && (
+            <Button
+              color="inherit"
+              startIcon={<ArrowBackIcon />}
+              onClick={goBack}
+              sx={{ mr: 1 }}
+            >
+              Terug
+            </Button>
+          )}
 
           <Typography
             variant="h6"
             sx={{
-              ml: 1,
               fontWeight: "bold",
               color: "#D4AF37",
               flexGrow: 1,

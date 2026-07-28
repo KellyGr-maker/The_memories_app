@@ -1,100 +1,61 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { createContext, useContext, useState } from "react";
 
 const OrderContext = createContext();
 
 export function OrderProvider({ children }) {
-  const [orders, setOrders] = useState(() => {
-    const saved = localStorage.getItem("orders");
-
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  useEffect(() => {
-    localStorage.setItem(
-      "orders",
-      JSON.stringify(orders)
-    );
-  }, [orders]);
-
-  function getOrder(id) {
-    return orders.find((order) => order.id === id);
-  }
-
-  function getOrderItems(id) {
-    return getOrder(id)?.items || [];
-  }
-
-  function isTableOccupied(zone, table) {
-    return orders.some(
-      (order) =>
-        order.zone === zone &&
-        order.table === table
-    );
-  }
+  const [orders, setOrders] = useState([]);
 
   function createTableOrder(zone, table) {
-    const id = `${zone}-${table}`;
-
-    const existing = getOrder(id);
-
-    if (existing) return existing;
-
     const order = {
-      id,
+      id: crypto.randomUUID(),
       type: "table",
       zone,
-      table,
+      table: String(table),
       name: `Tafel ${table}`,
       status: "occupied",
       createdAt: Date.now(),
       items: [],
     };
 
-    setOrders((current) => [
-      ...current,
-      order,
-    ]);
-
+    setOrders((prev) => [...prev, order]);
     return order;
   }
 
-  function createCustomerOrder(zone) {
+  function createCustomerOrder(zone, customerName = "") {
+    const count =
+      orders.filter((o) => o.type === "customer").length + 1;
+
     const order = {
       id: crypto.randomUUID(),
       type: "customer",
       zone,
       table: null,
-      name: "Klant",
+      name: customerName.trim() || `Klant ${count}`,
       status: "occupied",
       createdAt: Date.now(),
       items: [],
     };
 
-    setOrders((current) => [
-      ...current,
-      order,
-    ]);
-
+    setOrders((prev) => [...prev, order]);
     return order;
   }
 
-  function saveOrder(id, updatedOrder) {
-    setOrders((current) =>
-      current.map((order) =>
-        order.id === id
-          ? updatedOrder
-          : order
-      )
+  function getOrder(orderId) {
+    return orders.find((o) => o.id === orderId);
+  }
+
+  function isTableOccupied(zone, table) {
+    return orders.some(
+      (o) =>
+        o.type === "table" &&
+        o.zone === zone &&
+        String(o.table) === String(table)
     );
   }
-    function addItem(orderId, product) {
-    setOrders((current) =>
-      current.map((order) => {
+
+  function addItem(orderId, product) {
+    setOrders((prev) =>
+      prev.map((order) => {
         if (order.id !== orderId) return order;
 
         const existing = order.items.find(
@@ -122,37 +83,35 @@ export function OrderProvider({ children }) {
             {
               ...product,
               quantity: 1,
-              remark: "",
             },
           ],
         };
       })
     );
   }
+    function increaseItem(orderId, productId) {
+    setOrders((prev) =>
+      prev.map((order) => {
+        if (order.id !== orderId) return order;
 
-  function increaseItem(orderId, productId) {
-    setOrders((current) =>
-      current.map((order) =>
-        order.id !== orderId
-          ? order
-          : {
-              ...order,
-              items: order.items.map((item) =>
-                item.id === productId
-                  ? {
-                      ...item,
-                      quantity: item.quantity + 1,
-                    }
-                  : item
-              ),
-            }
-      )
+        return {
+          ...order,
+          items: order.items.map((item) =>
+            item.id === productId
+              ? {
+                  ...item,
+                  quantity: item.quantity + 1,
+                }
+              : item
+          ),
+        };
+      })
     );
   }
 
   function decreaseItem(orderId, productId) {
-    setOrders((current) =>
-      current.map((order) => {
+    setOrders((prev) =>
+      prev.map((order) => {
         if (order.id !== orderId) return order;
 
         return {
@@ -172,62 +131,85 @@ export function OrderProvider({ children }) {
     );
   }
 
-  function updateRemark(
-    orderId,
-    productId,
-    remark
-  ) {
-    setOrders((current) =>
-      current.map((order) =>
-        order.id !== orderId
-          ? order
-          : {
+  function clearOrder(orderId) {
+    setOrders((prev) =>
+      prev.map((order) =>
+        order.id === orderId
+          ? {
               ...order,
-              items: order.items.map((item) =>
-                item.id === productId
-                  ? {
-                      ...item,
-                      remark,
-                    }
-                  : item
-              ),
+              items: [],
             }
+          : order
       )
     );
   }
-    function clearOrder(id) {
-    setOrders((current) =>
-      current.filter((order) => order.id !== id)
+
+  function deleteOrder(orderId) {
+    setOrders((prev) =>
+      prev.filter((order) => order.id !== orderId)
     );
   }
 
-  function moveOrder(id, newTable) {
-    setOrders((current) =>
-      current.map((order) => {
-        if (order.id !== id) return order;
-
-        return {
-          ...order,
-          id: `${order.zone}-${newTable}`,
-          table: newTable,
-          name: `Tafel ${newTable}`,
-          type: "table",
-        };
-      })
+  function updateOrder(orderId, updater) {
+    setOrders((prev) =>
+      prev.map((order) =>
+        order.id === orderId
+          ? updater(order)
+          : order
+      )
     );
   }
+    function saveOrder() {
+    // Voor later (database/Firebase)
+    return true;
+  }
 
-  function mergeOrders(sourceId, targetId) {
-    setOrders((current) => {
-      const source = current.find(
-        (order) => order.id === sourceId
-      );
+function moveOrder(orderId, newTable) {
+  setOrders((prev) => {
+    const order = prev.find((o) => o.id === orderId);
 
-      const target = current.find(
-        (order) => order.id === targetId
-      );
+    if (!order) return prev;
 
-      if (!source || !target) return current;
+    const occupied = prev.some(
+      (o) =>
+        o.id !== orderId &&
+        o.type === "table" &&
+        o.zone === order.zone &&
+        String(o.table) === String(newTable)
+    );
+
+    if (occupied) {
+      alert("Deze tafel is al bezet.");
+      return prev;
+    }
+
+    return prev.map((o) =>
+      o.id === orderId
+        ? {
+            ...o,
+            type: "table",
+            table: String(newTable),
+            name: `Tafel ${newTable}`,
+          }
+        : o
+    );
+  });
+}
+
+  function mergeOrders(sourceOrderId, targetOrderId) {
+    if (
+      !sourceOrderId ||
+      !targetOrderId ||
+      sourceOrderId === targetOrderId
+    ) {
+      return;
+    }
+
+    setOrders((prev) => {
+      const source = prev.find((o) => o.id === sourceOrderId);
+      const target = prev.find((o) => o.id === targetOrderId);
+
+      if (!source || !target) return prev;
 
       const mergedItems = [...target.items];
 
@@ -243,86 +225,41 @@ export function OrderProvider({ children }) {
         }
       });
 
-      return current
+      return prev
         .map((order) =>
-          order.id === targetId
+          order.id === targetOrderId
             ? {
                 ...order,
                 items: mergedItems,
               }
             : order
         )
-        .filter((order) => order.id !== sourceId);
-    });
-  }
-
-  function splitOrder(
-    sourceId,
-    targetTable,
-    selectedItems
-  ) {
-    setOrders((current) => {
-      const source = current.find(
-        (order) => order.id === sourceId
-      );
-
-      if (!source) return current;
-
-      const newOrder = {
-        id: `${source.zone}-${targetTable}`,
-        type: "table",
-        zone: source.zone,
-        table: targetTable,
-        name: `Tafel ${targetTable}`,
-        status: "occupied",
-        createdAt: Date.now(),
-        items: selectedItems,
-      };
-
-      const remainingItems = source.items.filter(
-        (item) =>
-          !selectedItems.some(
-            (selected) => selected.id === item.id
-          )
-      );
-
-      return [
-        ...current
-          .map((order) =>
-            order.id === sourceId
-              ? {
-                  ...order,
-                  items: remainingItems,
-                }
-              : order
-          ),
-        newOrder,
-      ];
+        .filter((order) => order.id !== sourceOrderId);
     });
   }
     return (
     <OrderContext.Provider
       value={{
         orders,
-
-        getOrder,
-        getOrderItems,
-        isTableOccupied,
+        setOrders,
 
         createTableOrder,
         createCustomerOrder,
 
-        saveOrder,
-        clearOrder,
+        getOrder,
+        isTableOccupied,
 
         addItem,
         increaseItem,
         decreaseItem,
-        updateRemark,
 
+        clearOrder,
+        deleteOrder,
+        updateOrder,
+
+        saveOrder,
         moveOrder,
         mergeOrders,
-        splitOrder,
       }}
     >
       {children}
@@ -331,13 +268,5 @@ export function OrderProvider({ children }) {
 }
 
 export function useOrders() {
-  const context = useContext(OrderContext);
-
-  if (!context) {
-    throw new Error(
-      "useOrders must be used within an OrderProvider"
-    );
-  }
-
-  return context;
+  return useContext(OrderContext);
 }

@@ -8,6 +8,11 @@ import {
   Paper,
   Stack,
   Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
 } from "@mui/material";
 
 import AppLayout from "../../components/layouts/AppLayout";
@@ -27,17 +32,39 @@ export default function OrderPage() {
   const { orderId } = useParams();
 
   const {
-    getOrder,
-    saveOrder,
-    clearOrder,
-    moveOrder,
-    mergeOrders,
-    addItem,
-    increaseItem,
-    decreaseItem,
-  } = useOrders();
+  orders,
+  getOrder,
+  saveOrder,
+  clearOrder,
+  moveOrder,
+  mergeOrders,
+  addItem,
+  increaseItem,
+  decreaseItem,
+} = useOrders();
 
   const currentOrder = getOrder(orderId);
+  const [moveDialogOpen, setMoveDialogOpen] = useState(false);
+
+const TABLES = {
+  terras: ["1", "2", "3", "4", "5", "6", "7", "8"],
+  binnen: ["1","2","3","4","5","6","7","8","9","10","11"],
+  bar: ["1","2","3","4","5"],
+};
+
+const freeTables = TABLES[currentOrder?.zone || "terras"].filter(
+  (table) =>
+    !currentOrder ||
+    table === currentOrder.table ||
+    !getOrder(
+      orders.find(
+        (o) =>
+          o.type === "table" &&
+          o.zone === currentOrder.zone &&
+          o.table === table
+      )?.id
+    )
+);
 
   const [selectedCategory, setSelectedCategory] = useState(
     categories[0].id
@@ -45,11 +72,33 @@ export default function OrderPage() {
 
   const items = currentOrder?.items || [];
 
-  const filteredProducts = useMemo(() => {
-    return products.filter(
-      (product) => product.category === selectedCategory
-    );
-  }, [selectedCategory]);
+ const CATEGORY_MAP = {
+  frisdranken: "Frisdrank",
+  waters: "Water",
+  fruitsappen: "Fruitsappen",
+  bieren_vat: "Bier van t vat",
+  bieren_fles: "Bier op fles",
+  aperitieven: "Aperitieven/ sterke drank",
+  sterke_dranken: "Sterke drank",
+  whisky: "Whiskys",
+  mixers: "Mixers",
+  cocktails: "Coctails",
+  alcoholvrij: "Coctails",
+  wijnen: "Wijnen & Bubbels",
+  ontbijt: "Ontbijt",
+  pannenkoeken: "Pannenkoeken",
+  wafels: "Wafels",
+  ijsjes: "Ijsjes",
+  taart: "Taartjes",
+  snacks: "Genietmomentjes",
+};
+
+const filteredProducts = useMemo(() => {
+  return products.filter(
+    (product) =>
+      product.category === CATEGORY_MAP[selectedCategory]
+  );
+}, [selectedCategory]);
 
   function addProduct(product) {
     addItem(orderId, product);
@@ -75,14 +124,14 @@ export default function OrderPage() {
     clearOrder(orderId);
   }
 
-  function moveCurrentOrder() {
-    const newTable = prompt("Nieuwe tafel:");
+function moveCurrentOrder() {
+  setMoveDialogOpen(true);
+}
 
-    if (!newTable) return;
-
-    moveOrder(orderId, newTable);
-  }
-
+function moveToTable(table) {
+  moveOrder(orderId, table);
+  setMoveDialogOpen(false);
+}
   function mergeCurrentOrder() {
     const otherOrder = prompt("Order ID om samen te voegen:");
 
@@ -108,11 +157,10 @@ export default function OrderPage() {
         >
           <Stack spacing={1}>
             <Typography variant="h5" fontWeight="bold">
-              🍽️{" "}
-              {currentOrder?.table
-                ? `Tafel ${currentOrder.table}`
-                : currentOrder?.name || "Bestelling"}
-            </Typography>
+  {currentOrder?.type === "customer"
+    ? `👤 ${currentOrder.name}`
+    : `🍽️ Tafel ${currentOrder?.table}`}
+</Typography>
 
             <Typography color="text.secondary">
               {currentOrder?.zone}
@@ -189,6 +237,32 @@ export default function OrderPage() {
             onClear={clearCurrentOrder}
           />
         </Box>
+        <Dialog
+  open={moveDialogOpen}
+  onClose={() => setMoveDialogOpen(false)}
+>
+  <DialogTitle>Verplaats bestelling</DialogTitle>
+
+  <DialogContent>
+    <Stack spacing={1} sx={{ mt: 1, minWidth: 250 }}>
+      {freeTables.map((table) => (
+        <Button
+          key={table}
+          variant="contained"
+          onClick={() => moveToTable(table)}
+        >
+          Tafel {table}
+        </Button>
+      ))}
+    </Stack>
+  </DialogContent>
+
+  <DialogActions>
+    <Button onClick={() => setMoveDialogOpen(false)}>
+      Annuleren
+    </Button>
+  </DialogActions>
+</Dialog>
               </Container>
     </AppLayout>
   );

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import {
@@ -6,13 +7,19 @@ import {
   Paper,
   Stack,
   Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
 } from "@mui/material";
 
+import AppLayout from "../../components/Layouts/AppLayout";
 import { useOrders } from "../../context/OrderContext";
 
 const TABLES = {
   terras: ["1", "2", "3", "4", "5", "6", "7", "8"],
-  binnen: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"],
+  binnen: ["1","2","3","4","5","6","7","8","9","10","11"],
   bar: ["1", "2", "3", "4", "5"],
 };
 
@@ -29,7 +36,16 @@ export default function TablesPage() {
     isTableOccupied,
   } = useOrders();
 
+  const [openDialog, setOpenDialog] = useState(false);
+  const [customerName, setCustomerName] = useState("");
+
   const tables = TABLES[zone] || [];
+
+  const customers = orders.filter(
+    (order) =>
+      order.type === "customer" &&
+      order.zone === zone
+  );
 
   function openTable(table) {
     const existing = orders.find(
@@ -48,18 +64,22 @@ export default function TablesPage() {
     navigate(`/order/${order.id}`);
   }
 
-  function newCustomer() {
-    const order = createCustomerOrder(zone);
+  function createCustomer() {
+    const order = createCustomerOrder(zone, customerName);
+
+    setCustomerName("");
+    setOpenDialog(false);
+
     navigate(`/order/${order.id}`);
   }
 
   return (
-    <Box sx={{ p: 3 }}>
+    <AppLayout>
       <Stack
         direction="row"
         justifyContent="space-between"
         alignItems="center"
-        sx={{ mb: 3 }}
+        mb={3}
       >
         <Typography variant="h4" fontWeight="bold">
           {zone.toUpperCase()}
@@ -68,7 +88,7 @@ export default function TablesPage() {
         <Button
           variant="contained"
           size="large"
-          onClick={newCustomer}
+          onClick={() => setOpenDialog(true)}
         >
           + Klant
         </Button>
@@ -76,8 +96,11 @@ export default function TablesPage() {
 
       <Box
         sx={{
-          display: "flex",
-          flexWrap: "wrap",
+          display: "grid",
+          gridTemplateColumns: {
+            xs: "repeat(2,1fr)",
+            sm: "repeat(3,1fr)",
+          },
           gap: 2,
         }}
       >
@@ -87,41 +110,89 @@ export default function TablesPage() {
           return (
             <Paper
               key={table}
-              elevation={3}
               onClick={() => openTable(table)}
+              elevation={4}
               sx={{
-                width: 160,
-                height: 120,
+                height: 110,
+                borderRadius: 3,
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "center",
                 alignItems: "center",
                 cursor: "pointer",
-                borderRadius: 3,
-                bgcolor: occupied
-                  ? "success.main"
-                  : "grey.200",
-                color: occupied ? "white" : "black",
-                transition: "0.2s",
-                "&:hover": {
-                  transform: "scale(1.03)",
-                },
+                bgcolor: occupied ? "#d32f2f" : "#2e7d32",
+                color: "white",
               }}
             >
-              <Typography
-                variant="h5"
-                fontWeight="bold"
-              >
+              <Typography variant="h5" fontWeight="bold">
                 Tafel {table}
               </Typography>
 
-              <Typography sx={{ mt: 1 }}>
-                {occupied ? "🟢 Bezet" : "⚪ Vrij"}
+              <Typography>
+                {occupied ? "Bezet" : "Vrij"}
               </Typography>
             </Paper>
           );
         })}
+
+        {customers.map((customer) => (
+          <Paper
+            key={customer.id}
+            onClick={() => navigate(`/order/${customer.id}`)}
+            elevation={4}
+            sx={{
+              height: 110,
+              borderRadius: 3,
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
+              cursor: "pointer",
+              bgcolor: "#1976d2",
+              color: "white",
+            }}
+          >
+            <Typography variant="h4">👤</Typography>
+            <Typography fontWeight="bold">
+              {customer.name}
+            </Typography>
+            <Typography variant="body2">
+              Klant
+            </Typography>
+          </Paper>
+        ))}
       </Box>
-    </Box>
+
+      <Dialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+      >
+        <DialogTitle>Nieuwe klant</DialogTitle>
+
+        <DialogContent>
+          <TextField
+            autoFocus
+            fullWidth
+            label="Naam"
+            margin="dense"
+            value={customerName}
+            onChange={(e) => setCustomerName(e.target.value)}
+          />
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={() => setOpenDialog(false)}>
+            Annuleren
+          </Button>
+
+          <Button
+            variant="contained"
+            onClick={createCustomer}
+          >
+            Aanmaken
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </AppLayout>
   );
 }
