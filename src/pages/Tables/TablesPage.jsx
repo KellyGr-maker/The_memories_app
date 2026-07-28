@@ -14,7 +14,7 @@ import {
   TextField,
 } from "@mui/material";
 
-import AppLayout from "../../components/Layouts/AppLayout";
+import AppLayout from "../../components/layouts/AppLayout";
 import { useOrders } from "../../context/OrderContext";
 
 const TABLES = {

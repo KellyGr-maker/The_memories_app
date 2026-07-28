@@ -16,7 +16,7 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-import AppLayout from "../../components/Layouts/AppLayout";
+import AppLayout from "../../components/layouts/AppLayout";
 import { useEmployee } from "../../context/EmployeeContext";
 
 export default function SettingsPage() {

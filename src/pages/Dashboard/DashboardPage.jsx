@@ -9,7 +9,7 @@ import {
   Paper,
 } from "@mui/material";
 
-import AppLayout from "../../components/Layouts/AppLayout";
+import AppLayout from "../../components/layouts/AppLayout";
 import { useEmployee } from "../../context/EmployeeContext";
 
 export default function DashboardPage() {

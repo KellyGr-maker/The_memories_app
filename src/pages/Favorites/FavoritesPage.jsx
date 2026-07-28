@@ -4,7 +4,7 @@ import {
   Paper,
 } from "@mui/material";
 
-import AppLayout from "../../components/Layouts/AppLayout";
+import AppLayout from "../../components/layouts/AppLayout";
 
 export default function FavoritesPage() {
   return (
