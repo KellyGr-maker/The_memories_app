@@ -13,7 +13,11 @@ import AppLayout from "../../components/layouts/AppLayout";
 import { useOrders } from "../../context/OrderContext";
 
 export default function BarPage() {
-  const { orders, setOrders } = useOrders();
+  const {
+    orders,
+    moveItemToReady,
+    moveItemToServed,
+  } = useOrders();
 
   const pendingOrders = orders.filter((order) =>
     order.items.some((item) => item.status === "pending")
@@ -24,43 +28,27 @@ export default function BarPage() {
   );
 
   function markReady(orderId) {
-    setOrders((prev) =>
-      prev.map((order) => {
-        if (order.id !== orderId) return order;
+    const order = orders.find((o) => o.id === orderId);
 
-        return {
-          ...order,
-          items: order.items.map((item) =>
-            item.status === "pending"
-              ? {
-                  ...item,
-                  status: "ready",
-                }
-              : item
-          ),
-        };
-      })
-    );
+    if (!order) return;
+
+    order.items
+      .filter((item) => item.status === "pending")
+      .forEach((item) => {
+       moveItemToReady(orderId, item.orderItemId);
+      });
   }
 
   function markServed(orderId) {
-    setOrders((prev) =>
-      prev.map((order) => {
-        if (order.id !== orderId) return order;
+    const order = orders.find((o) => o.id === orderId);
 
-        return {
-          ...order,
-          items: order.items.map((item) =>
-            item.status === "ready"
-              ? {
-                  ...item,
-                  status: "served",
-                }
-              : item
-          ),
-        };
-      })
-    );
+    if (!order) return;
+
+    order.items
+      .filter((item) => item.status === "ready")
+      .forEach((item) => {
+        moveItemToServed(orderId, item.orderItemId);
+      });
   }
 
   return (
@@ -85,8 +73,7 @@ export default function BarPage() {
               🟡 Te maken
             </Typography>
 
-            <Stack spacing={2}>
-              {pendingOrders.map((order) => (
+            <Stack spacing={2}></Stack>              {pendingOrders.map((order) => (
                 <Card
                   key={order.id}
                   sx={{
@@ -107,11 +94,9 @@ export default function BarPage() {
                     <Divider sx={{ my: 2 }} />
 
                     {order.items
-                      .filter(
-                        (item) => item.status === "pending"
-                      )
+                      .filter((item) => item.status === "pending")
                       .map((item) => (
-                        <Typography key={item.id}>
+                        <Typography key={item.orderItemId}>
                           {item.quantity} × {item.name}
                         </Typography>
                       ))}
@@ -128,7 +113,7 @@ export default function BarPage() {
                   </CardContent>
                 </Card>
               ))}
-            </Stack>
+        
           </Grid>
 
           <Grid item xs={12} md={6}>
@@ -162,11 +147,9 @@ export default function BarPage() {
                     <Divider sx={{ my: 2 }} />
 
                     {order.items
-                      .filter(
-                        (item) => item.status === "ready"
-                      )
+                      .filter((item) => item.status === "ready")
                       .map((item) => (
-                        <Typography key={item.id}>
+                        <Typography key={item.orderItemId}>
                           {item.quantity} × {item.name}
                         </Typography>
                       ))}

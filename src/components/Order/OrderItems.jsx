@@ -30,6 +30,18 @@ function ItemRow({
   onIncrease,
   onDecrease,
 }) {
+  const statusColor = {
+    pending: "warning.main",
+    ready: "success.main",
+    served: "primary.main",
+  };
+
+  const statusLabel = {
+    pending: "🟡 In bereiding",
+    ready: "🟢 Klaar",
+    served: "✅ Gebracht",
+  };
+
   return (
     <Stack
       direction="row"
@@ -48,11 +60,21 @@ function ItemRow({
         >
           € {item.price.toFixed(2)}
         </Typography>
+
+        <Typography
+          variant="caption"
+          sx={{
+            color: statusColor[item.status],
+            fontWeight: "bold",
+          }}
+        >
+          {statusLabel[item.status]}
+        </Typography>
       </Box>
 
       <IconButton
         color="error"
-        onClick={() => onDecrease(item.id)}
+        onClick={() => onDecrease(item.orderItemId)}
       >
         <RemoveCircleIcon />
       </IconButton>
@@ -63,7 +85,7 @@ function ItemRow({
 
       <IconButton
         color="success"
-        onClick={() => onIncrease(item.id)}
+        onClick={() => onIncrease(item.orderItemId)}
       >
         <AddCircleIcon />
       </IconButton>
@@ -78,14 +100,30 @@ export default function OrderItems({
   onDecrease,
 }) {
 
-  const drinks = order.filter((item) =>
-    DRINK_CATEGORIES.includes(item.category)
+const STATUS_ORDER = {
+  pending: 0,
+  ready: 1,
+  served: 2,
+};
+
+const sortByStatus = (items) =>
+  [...items].sort(
+    (a, b) =>
+      STATUS_ORDER[a.status] - STATUS_ORDER[b.status]
   );
 
-  const food = order.filter(
+const drinks = sortByStatus(
+  order.filter((item) =>
+    DRINK_CATEGORIES.includes(item.category)
+  )
+);
+
+const food = sortByStatus(
+  order.filter(
     (item) =>
       !DRINK_CATEGORIES.includes(item.category)
-  );
+  )
+);
 
 
   return (
@@ -136,7 +174,7 @@ export default function OrderItems({
           </Typography>
 
           {drinks.map((item) => (
-            <Box key={item.id}>
+            <Box key={item.orderItemId}>
               <ItemRow
                 item={item}
                 onIncrease={onIncrease}
@@ -160,7 +198,7 @@ export default function OrderItems({
           </Typography>
 
           {food.map((item) => (
-            <Box key={item.id}>
+           <Box key={item.orderItemId}>
               <ItemRow
                 item={item}
                 onIncrease={onIncrease}

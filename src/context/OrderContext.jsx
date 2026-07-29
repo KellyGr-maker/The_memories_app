@@ -54,95 +54,165 @@ export function OrderProvider({ children }) {
   }
 
   function addItem(orderId, product) {
+    console.log("ADD ITEM", orderId, product);
     setOrders((prev) =>
       prev.map((order) => {
         if (order.id !== orderId) return order;
 
         const existing = order.items.find(
-          (item) => item.id === product.id
-        );
+  (item) =>
+    item.id === product.id &&
+    item.status === "pending"
+);
 
         if (existing) {
-          return {
-            ...order,
-            items: order.items.map((item) =>
-              item.id === product.id
-                ? {
-                    ...item,
-                    quantity: item.quantity + 1,
-                  }
-                : item
-            ),
-          };
-        }
+  return {
+    ...order,
+    items: order.items.map((item) =>
+      item.id === product.id &&
+      item.status === "pending"
+        ? {
+            ...item,
+            quantity: item.quantity + 1,
+          }
+        : item
+    ),
+  };
+}
 
         return {
           ...order,
           items: [
-            ...order.items,
-            {
-              ...product,
-              quantity: 1,
-            },
-          ],
-        };
-      })
-    );
-  }
-    function increaseItem(orderId, productId) {
-    setOrders((prev) =>
-      prev.map((order) => {
-        if (order.id !== orderId) return order;
-
-        return {
-          ...order,
-          items: order.items.map((item) =>
-            item.id === productId
-              ? {
-                  ...item,
-                  quantity: item.quantity + 1,
-                }
-              : item
-          ),
+  ...order.items,
+  {
+    orderItemId: crypto.randomUUID(),
+    ...product,
+    quantity: 1,
+    status: "pending",
+  },
+],
         };
       })
     );
   }
 
-  function decreaseItem(orderId, productId) {
-    setOrders((prev) =>
-      prev.map((order) => {
-        if (order.id !== orderId) return order;
+  function increaseItem(orderId, orderItemId) {
+  setOrders((prev) =>
+    prev.map((order) => {
+      if (order.id !== orderId) return order;
 
-        return {
-          ...order,
-          items: order.items
-            .map((item) =>
-              item.id === productId
-                ? {
-                    ...item,
-                    quantity: item.quantity - 1,
-                  }
-                : item
-            )
-            .filter((item) => item.quantity > 0),
+      return {
+        ...order,
+        items: order.items.map((item) =>
+          item.orderItemId === orderItemId
+            ? {
+                ...item,
+                quantity: item.quantity + 1,
+              }
+            : item
+        ),
+      };
+    })
+  );
+}
+
+  function decreaseItem(orderId, orderItemId) {
+  setOrders((prev) =>
+    prev.map((order) => {
+      if (order.id !== orderId) return order;
+
+      const index = order.items.findIndex(
+        (item) => item.orderItemId === orderItemId
+      );
+
+      if (index === -1) return order;
+
+      const items = [...order.items];
+
+      if (items[index].quantity > 1) {
+        items[index] = {
+          ...items[index],
+          quantity: items[index].quantity - 1,
         };
-      })
-    );
-  }
+      } else {
+        items.splice(index, 1);
+      }
 
-  function clearOrder(orderId) {
+      return {
+        ...order,
+        items,
+      };
+    })
+  );
+}
+
+function moveItemToReady(orderId, orderItemId) {
+  setOrders((prev) =>
+    prev.map((order) => {
+      if (order.id !== orderId) return order;
+
+      return {
+        ...order,
+        items: order.items.map((item) =>
+          item.orderItemId === orderItemId
+            ? {
+                ...item,
+                status: "ready",
+              }
+            : item
+        ),
+      };
+    })
+  );
+}
+
+function moveItemToServed(orderId, orderItemId) {
+  setOrders((prev) =>
+    prev.map((order) => {
+      if (order.id !== orderId) return order;
+
+      return {
+        ...order,
+        items: order.items.map((item) =>
+          item.orderItemId === orderItemId
+            ? {
+                ...item,
+                status: "served",
+              }
+            : item
+        ),
+      };
+    })
+  );
+}
+    function updateOrder(orderId, updater) {
     setOrders((prev) =>
       prev.map((order) =>
-        order.id === orderId
-          ? {
-              ...order,
-              items: [],
-            }
-          : order
+        order.id === orderId ? updater(order) : order
       )
     );
   }
+
+function clearOrder(orderId) {
+  setOrders((prev) =>
+    prev.flatMap((order) => {
+      if (order.id !== orderId) return [order];
+
+      // Losse klant volledig verwijderen
+      if (order.type === "customer") {
+        return [];
+      }
+
+      // Tafel behouden, maar bestelling leegmaken
+      return [
+        {
+          ...order,
+          items: [],
+        },
+      ];
+    })
+  );
+}
 
   function deleteOrder(orderId) {
     setOrders((prev) =>
@@ -150,119 +220,88 @@ export function OrderProvider({ children }) {
     );
   }
 
-  function updateOrder(orderId, updater) {
+  function completeOrder(orderId) {
+    deleteOrder(orderId);
+  }
+
+  function saveOrder() {
+    return true;
+  }
+
+  function moveOrder(orderId, newTable) {
     setOrders((prev) =>
       prev.map((order) =>
         order.id === orderId
-          ? updater(order)
+          ? {
+              ...order,
+              type: "table",
+              table: String(newTable),
+              name: `Tafel ${newTable}`,
+            }
           : order
       )
     );
   }
-    function saveOrder() {
-    // Voor later (database/Firebase)
-    return true;
-  }
 
-function moveOrder(orderId, newTable) {
-  setOrders((prev) => {
-    const order = prev.find((o) => o.id === orderId);
-
-    if (!order) return prev;
-
-    const occupied = prev.some(
-      (o) =>
-        o.id !== orderId &&
-        o.type === "table" &&
-        o.zone === order.zone &&
-        String(o.table) === String(newTable)
-    );
-
-    if (occupied) {
-      alert("Deze tafel is al bezet.");
-      return prev;
-    }
-
-    return prev.map((o) =>
-      o.id === orderId
-        ? {
-            ...o,
-            type: "table",
-            table: String(newTable),
-            name: `Tafel ${newTable}`,
-          }
-        : o
-    );
-  });
-}
-
-  function mergeOrders(sourceOrderId, targetOrderId) {
-    if (
-      !sourceOrderId ||
-      !targetOrderId ||
-      sourceOrderId === targetOrderId
-    ) {
-      return;
-    }
+  function mergeOrders(sourceId, targetId) {
+    if (!sourceId || !targetId || sourceId === targetId) return;
 
     setOrders((prev) => {
-      const source = prev.find((o) => o.id === sourceOrderId);
-      const target = prev.find((o) => o.id === targetOrderId);
+      const source = prev.find((o) => o.id === sourceId);
+      const target = prev.find((o) => o.id === targetId);
 
       if (!source || !target) return prev;
 
       const mergedItems = [...target.items];
 
       source.items.forEach((item) => {
-        const existing = mergedItems.find(
-          (i) => i.id === item.id
-        );
+  const existing = mergedItems.find(
+    (i) =>
+      i.id === item.id &&
+      i.status === item.status
+  );
 
-        if (existing) {
-          existing.quantity += item.quantity;
-        } else {
-          mergedItems.push({ ...item });
-        }
-      });
+  if (existing) {
+    existing.quantity += item.quantity;
+  } else {
+    mergedItems.push({
+      ...item,
+      orderItemId: crypto.randomUUID(),
+    });
+  }
+});
 
       return prev
         .map((order) =>
-          order.id === targetOrderId
+          order.id === targetId
             ? {
                 ...order,
                 items: mergedItems,
               }
             : order
         )
-        .filter((order) => order.id !== sourceOrderId);
+        .filter((order) => order.id !== sourceId);
     });
   }
-  function completeOrder(orderId) {
-  setOrders((prev) =>
-    prev.filter((order) => order.id !== orderId)
-  );
-}
-    return (
+
+  return (
     <OrderContext.Provider
       value={{
         orders,
         setOrders,
-
         createTableOrder,
         createCustomerOrder,
-
         getOrder,
         isTableOccupied,
-
         addItem,
         increaseItem,
         decreaseItem,
-
+        moveItemToReady,
+        moveItemToServed,
         clearOrder,
         deleteOrder,
         completeOrder,
         updateOrder,
-
         saveOrder,
         moveOrder,
         mergeOrders,
