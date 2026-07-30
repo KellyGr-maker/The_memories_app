@@ -62,7 +62,8 @@ export function OrderProvider({ children }) {
         const existing = order.items.find(
   (item) =>
     item.id === product.id &&
-    item.status === "pending"
+    item.status === "pending" &&
+    item.note === (product.note || "")
 );
 
         if (existing) {
@@ -70,7 +71,8 @@ export function OrderProvider({ children }) {
     ...order,
     items: order.items.map((item) =>
       item.id === product.id &&
-      item.status === "pending"
+item.status === "pending" &&
+item.note === (product.note || "")
         ? {
             ...item,
             quantity: item.quantity + 1,
@@ -84,12 +86,13 @@ export function OrderProvider({ children }) {
           ...order,
           items: [
   ...order.items,
-  {
-    orderItemId: crypto.randomUUID(),
-    ...product,
-    quantity: 1,
-    status: "pending",
-  },
+ {
+  orderItemId: crypto.randomUUID(),
+  ...product,
+  note: product.note || "",
+  quantity: 1,
+  status: "pending",
+}
 ],
         };
       })
@@ -178,6 +181,25 @@ function moveItemToServed(orderId, orderItemId) {
             ? {
                 ...item,
                 status: "served",
+              }
+            : item
+        ),
+      };
+    })
+  );
+}
+function updateItemNote(orderId, orderItemId, note) {
+  setOrders((prev) =>
+    prev.map((order) => {
+      if (order.id !== orderId) return order;
+
+      return {
+        ...order,
+        items: order.items.map((item) =>
+          item.orderItemId === orderItemId
+            ? {
+                ...item,
+                note,
               }
             : item
         ),
@@ -298,6 +320,7 @@ function clearOrder(orderId) {
         decreaseItem,
         moveItemToReady,
         moveItemToServed,
+        updateItemNote,
         clearOrder,
         deleteOrder,
         completeOrder,

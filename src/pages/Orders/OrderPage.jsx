@@ -13,6 +13,7 @@ import {
   DialogContent,
   DialogActions,
   Button,
+  TextField,
 } from "@mui/material";
 
 import AppLayout from "../../components/layouts/AppLayout";
@@ -45,6 +46,7 @@ export default function OrderPage() {
 
   const currentOrder = getOrder(orderId);
   const [moveDialogOpen, setMoveDialogOpen] = useState(false);
+
 
 const TABLES = {
   terras: ["1", "2", "3", "4", "5", "6", "7", "8"],
@@ -100,9 +102,9 @@ const filteredProducts = useMemo(() => {
   );
 }, [selectedCategory]);
 
-  function addProduct(product) {
-    addItem(orderId, product);
-  }
+function addProduct(product) {
+  addItem(orderId, product);
+}
 
   function increase(id) {
     increaseItem(orderId, id);
@@ -110,7 +112,7 @@ const filteredProducts = useMemo(() => {
 
   function decrease(id) {
     decreaseItem(orderId, id);
-  }
+   }
 
   function saveCurrentOrder() {
     if (!currentOrder) return;
@@ -263,6 +265,7 @@ function moveToTable(table) {
     </Button>
   </DialogActions>
 </Dialog>
+
               </Container>
     </AppLayout>
   );

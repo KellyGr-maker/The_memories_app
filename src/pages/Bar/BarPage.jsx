@@ -1,4 +1,5 @@
 import {
+  Box,
   Container,
   Typography,
   Card,
@@ -96,9 +97,24 @@ export default function BarPage() {
                     {order.items
                       .filter((item) => item.status === "pending")
                       .map((item) => (
-                        <Typography key={item.orderItemId}>
-                          {item.quantity} × {item.name}
-                        </Typography>
+                       <Box key={item.orderItemId} sx={{ mb: 1 }}>
+  <Typography>
+    {item.quantity} × {item.name}
+  </Typography>
+
+  {item.note && (
+    <Typography
+      variant="body2"
+      sx={{
+        ml: 2,
+        fontStyle: "italic",
+        color: "#FFD54F",
+      }}
+    >
+      ↳ {item.note}
+    </Typography>
+  )}
+</Box>
                       ))}
 
                     <Button
@@ -149,9 +165,24 @@ export default function BarPage() {
                     {order.items
                       .filter((item) => item.status === "ready")
                       .map((item) => (
-                        <Typography key={item.orderItemId}>
-                          {item.quantity} × {item.name}
-                        </Typography>
+                        <Box key={item.orderItemId} sx={{ mb: 1 }}>
+  <Typography>
+    {item.quantity} × {item.name}
+  </Typography>
+
+  {item.note && (
+    <Typography
+      variant="body2"
+      sx={{
+        ml: 2,
+        fontStyle: "italic",
+        color: "#FFD54F",
+      }}
+    >
+      ↳ {item.note}
+    </Typography>
+  )}
+</Box>
                       ))}
 
                     <Button
