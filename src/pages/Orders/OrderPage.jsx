@@ -180,20 +180,14 @@ function moveToTable(table) {
             display: "flex",
             gap: 2,
             alignItems: "flex-start",
-            flexDirection: {
-              xs: "column",
-              md: "row",
-            },
+            flexDirection: "row",
             mb: 2,
           }}
         >
           {/* Categorieën */}
           <Box
             sx={{
-              width: {
-                xs: "100%",
-                md: 260,
-              },
+              width: 260,
               flexShrink: 0,
             }}
           >
@@ -208,7 +202,7 @@ function moveToTable(table) {
           <Box
             sx={{
               flex: 1,
-              width: "100%",
+              minWidth: 0,
             }}
           >
             <FavoriteList
@@ -220,10 +214,11 @@ function moveToTable(table) {
 
         <Box sx={{ mb: 2 }}>
           <OrderItems
-            order={items}
-            onIncrease={increase}
-            onDecrease={decrease}
-          />
+             orderId={orderId}
+             order={items}
+             onIncrease={increase}
+             onDecrease={decrease}
+/>
         </Box>
 
         <Box sx={{ mb: 2 }}>

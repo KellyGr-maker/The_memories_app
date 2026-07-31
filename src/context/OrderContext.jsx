@@ -45,13 +45,14 @@ export function OrderProvider({ children }) {
   }
 
   function isTableOccupied(zone, table) {
-    return orders.some(
-      (o) =>
-        o.type === "table" &&
-        o.zone === zone &&
-        String(o.table) === String(table)
-    );
-  }
+  return orders.some(
+    (o) =>
+      o.type === "table" &&
+      o.zone === zone &&
+      String(o.table) === String(table) &&
+      o.items.length > 0
+  );
+}
 
   function addItem(orderId, product) {
     console.log("ADD ITEM", orderId, product);

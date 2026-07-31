@@ -137,11 +137,12 @@ export default function OrderItems({
 
           {drinks.map((item) => (
             <Box key={item.id}>
-              <ItemRow
-                item={item}
-                onIncrease={onIncrease}
-                onDecrease={onDecrease}
-              />
+          <ItemRow
+  orderId={orderId}
+  item={item}
+  onIncrease={onIncrease}
+  onDecrease={onDecrease}
+/>
               <Divider />
             </Box>
           ))}
@@ -161,11 +162,12 @@ export default function OrderItems({
 
           {food.map((item) => (
             <Box key={item.id}>
-              <ItemRow
-                item={item}
-                onIncrease={onIncrease}
-                onDecrease={onDecrease}
-              />
+          <ItemRow
+  orderId={orderId}
+  item={item}
+  onIncrease={onIncrease}
+  onDecrease={onDecrease}
+/>
               <Divider />
             </Box>
           ))}

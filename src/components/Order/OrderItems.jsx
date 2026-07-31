@@ -5,10 +5,20 @@ import {
   Stack,
   IconButton,
   Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
 } from "@mui/material";
 
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
+import EditNoteIcon from "@mui/icons-material/EditNote";
+
+import { useState } from "react";
+import { useOrders } from "../../context/OrderContext";
 
 const DRINK_CATEGORIES = [
   "Frisdrank",
@@ -26,10 +36,30 @@ const DRINK_CATEGORIES = [
 ];
 
 function ItemRow({
+  orderId,
   item,
   onIncrease,
   onDecrease,
 }) {
+  const { updateItemNote } = useOrders();
+  const [noteDialogOpen, setNoteDialogOpen] = useState(false);
+const [note, setNote] = useState(item.note || "");
+
+function openNoteDialog() {
+  setNote(item.note || "");
+  setNoteDialogOpen(true);
+}
+
+function saveNote() {
+  updateItemNote(
+    orderId,
+    item.orderItemId,
+    note
+  );
+
+  setNoteDialogOpen(false);
+}
+
   const statusColor = {
     pending: "warning.main",
     ready: "success.main",
@@ -41,6 +71,23 @@ function ItemRow({
     ready: "🟢 Klaar",
     served: "✅ Gebracht",
   };
+
+function editNote() {
+  alert("klik");
+
+  const note = prompt(
+  "Opmerking",
+  item.note || ""
+);
+
+  if (note === null) return;
+
+  updateItemNote(
+    orderId,
+    item.orderItemId,
+    note
+  );
+}
 
   return (
     <Stack
@@ -66,15 +113,31 @@ function ItemRow({
           sx={{
             color: statusColor[item.status],
             fontWeight: "bold",
+            display: "block",
           }}
         >
           {statusLabel[item.status]}
         </Typography>
+
+        {item.note && (
+          <Typography
+            variant="body2"
+            sx={{
+              mt: 0.5,
+              fontStyle: "italic",
+              color: "text.secondary",
+            }}
+          >
+            📝 {item.note}
+          </Typography>
+        )}
       </Box>
 
       <IconButton
         color="error"
-        onClick={() => onDecrease(item.orderItemId)}
+        onClick={() =>
+          onDecrease(item.orderItemId)
+        }
       >
         <RemoveCircleIcon />
       </IconButton>
@@ -85,46 +148,94 @@ function ItemRow({
 
       <IconButton
         color="success"
-        onClick={() => onIncrease(item.orderItemId)}
+        onClick={() =>
+          onIncrease(item.orderItemId)
+        }
       >
         <AddCircleIcon />
       </IconButton>
-    </Stack>
-  );
-}
 
+      <IconButton
+        color="primary"
+        onClick={openNoteDialog}
+      >
+        <EditNoteIcon />
+      </IconButton>
+   
 
+      <Dialog
+        open={noteDialogOpen}
+        onClose={() => setNoteDialogOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>
+          Opmerking
+        </DialogTitle>
+
+        <DialogContent>
+          <TextField
+            autoFocus
+            fullWidth
+            multiline
+            minRows={3}
+            value={note}
+            onChange={(e) =>
+              setNote(e.target.value)
+            }
+            sx={{ mt: 1 }}
+          />
+        </DialogContent>
+
+        <DialogActions>
+          <Button
+            onClick={() =>
+              setNoteDialogOpen(false)
+            }
+          >
+            Annuleren
+          </Button>
+
+          <Button
+            variant="contained"
+            onClick={saveNote}
+          >
+            Opslaan
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Stack>)}
 export default function OrderItems({
+  orderId,
   order,
   onIncrease,
   onDecrease,
 }) {
+  const STATUS_ORDER = {
+    pending: 0,
+    ready: 1,
+    served: 2,
+  };
 
-const STATUS_ORDER = {
-  pending: 0,
-  ready: 1,
-  served: 2,
-};
+  const sortByStatus = (items) =>
+    [...items].sort(
+      (a, b) =>
+        STATUS_ORDER[a.status] -
+        STATUS_ORDER[b.status]
+    );
 
-const sortByStatus = (items) =>
-  [...items].sort(
-    (a, b) =>
-      STATUS_ORDER[a.status] - STATUS_ORDER[b.status]
+  const drinks = sortByStatus(
+    order.filter((item) =>
+      DRINK_CATEGORIES.includes(item.category)
+    )
   );
 
-const drinks = sortByStatus(
-  order.filter((item) =>
-    DRINK_CATEGORIES.includes(item.category)
-  )
-);
-
-const food = sortByStatus(
-  order.filter(
-    (item) =>
-      !DRINK_CATEGORIES.includes(item.category)
-  )
-);
-
+  const food = sortByStatus(
+    order.filter(
+      (item) =>
+        !DRINK_CATEGORIES.includes(item.category)
+    )
+  );
 
   return (
     <Paper
@@ -134,7 +245,6 @@ const food = sortByStatus(
         borderRadius: 3,
       }}
     >
-
       <Typography
         variant="h6"
         fontWeight="bold"
@@ -143,13 +253,11 @@ const food = sortByStatus(
         🧾 Bestelling
       </Typography>
 
-
       {order.length === 0 && (
         <Typography color="text.secondary">
           Nog geen producten toegevoegd.
         </Typography>
       )}
-
 
       <Box
         sx={{
@@ -161,7 +269,6 @@ const food = sortByStatus(
           gap: 2,
         }}
       >
-
         <Paper
           variant="outlined"
           sx={{ p: 2 }}
@@ -176,6 +283,7 @@ const food = sortByStatus(
           {drinks.map((item) => (
             <Box key={item.orderItemId}>
               <ItemRow
+                orderId={orderId}
                 item={item}
                 onIncrease={onIncrease}
                 onDecrease={onDecrease}
@@ -184,7 +292,6 @@ const food = sortByStatus(
             </Box>
           ))}
         </Paper>
-
 
         <Paper
           variant="outlined"
@@ -198,8 +305,9 @@ const food = sortByStatus(
           </Typography>
 
           {food.map((item) => (
-           <Box key={item.orderItemId}>
+            <Box key={item.orderItemId}>
               <ItemRow
+                orderId={orderId}
                 item={item}
                 onIncrease={onIncrease}
                 onDecrease={onDecrease}
@@ -208,9 +316,7 @@ const food = sortByStatus(
             </Box>
           ))}
         </Paper>
-
       </Box>
-
     </Paper>
   );
 }
