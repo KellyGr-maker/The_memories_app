@@ -187,7 +187,8 @@ function moveToTable(table) {
           {/* Categorieën */}
           <Box
             sx={{
-              width: 260,
+              xs: 135,
+              md: 260,
               flexShrink: 0,
             }}
           >
