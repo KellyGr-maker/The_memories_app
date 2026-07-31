@@ -60,19 +60,19 @@ export default function CategoryList({
             }}
           >
             {{
-  "Frisdranken": "🥤 Fris",
-  "Waters": "💧 Water",
-  "Fruitsappen": "🧃 Sap",
-  "Bieren van 't vat": "🍺 Vat",
-  "Bieren op fles": "🍾 Fles",
-  "Aperitieven": "🥃 Apero",
-  "Sterke dranken": "🥃 Sterk",
-  "Whisky": "🥃 Whisky",
-  "Mixers": "🥤 Mix",
-  "Cocktails": "🍸 Cockt.",
-  "Alcoholvrije cocktails": "🍹 0%",
-  "Wijnen & Bubbels": "🍷 Wijn",
-}[category.naam] || category.naam}
+  frisdranken: "🥤 Fris",
+  waters: "💧 Water",
+  fruitsappen: "🧃 Sap",
+  bieren_vat: "🍺 Vat",
+  bieren_fles: "🍾 Fles",
+  aperitieven: "🥃 Apero",
+  sterke_dranken: "🥃 Sterk",
+  whisky: "🥃 Whisky",
+  mixers: "🥤 Mix",
+  cocktails: "🍸 Cockt.",
+  alcoholvrij: "🍹 0%",
+  wijnen: "🍷 Wijn",
+}[category.id] || category.naam}
           </Button>
         ))}
       </Stack>
