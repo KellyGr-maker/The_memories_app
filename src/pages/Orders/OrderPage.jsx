@@ -185,13 +185,17 @@ function moveToTable(table) {
           }}
         >
           {/* Categorieën */}
-          <Box
-            sx={{
-              xs: 135,
-              md: 260,
-              flexShrink: 0,
-            }}
-          >
+     {/* Categorieën */}
+                <Box
+          sx={{
+            width: {
+            xs: 110,
+            sm: 130,
+            md: 260,
+          },
+          flexShrink: 0,
+         }}
+>
             <CategoryList
               categories={categories}
               selectedCategory={selectedCategory}
