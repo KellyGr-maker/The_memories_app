@@ -17,10 +17,6 @@ import {
 } from "@mui/material";
 
 import AppLayout from "../../components/layouts/AppLayout";
-
-import categories from "../../data/categories";
-import products from "../../data/products";
-
 import CategoryList from "../../components/CategoryList/CategoryList";
 import FavoriteList from "../../components/FavoriteList/FavoriteList";
 import OrderItems from "../../components/Order/OrderItems";
@@ -28,6 +24,8 @@ import OrderTotal from "../../components/Order/OrderTotal";
 import OrderActions from "../../components/Order/OrderActions";
 
 import { useOrders } from "../../context/OrderContext";
+import { useCategories } from "../../context/CategoryContext";
+import { useProducts } from "../../context/ProductContext";
 
 export default function OrderPage() {
   const { orderId } = useParams();
@@ -45,6 +43,8 @@ export default function OrderPage() {
 } = useOrders();
 
   const currentOrder = getOrder(orderId);
+  const { categories } = useCategories();
+  const { products } = useProducts();
   const [moveDialogOpen, setMoveDialogOpen] = useState(false);
 
 
@@ -74,33 +74,17 @@ const freeTables = TABLES[currentOrder?.zone || "terras"].filter(
 
   const items = currentOrder?.items || [];
 
- const CATEGORY_MAP = {
-  frisdranken: "Frisdrank",
-  waters: "Water",
-  fruitsappen: "Fruitsappen",
-  bieren_vat: "Bier van t vat",
-  bieren_fles: "Bier op fles",
-  aperitieven: "Aperitieven/ sterke drank",
-  sterke_dranken: "Sterke drank",
-  whisky: "Whiskys",
-  mixers: "Mixers",
-  cocktails: "Coctails",
-  alcoholvrij: "Coctails",
-  wijnen: "Wijnen & Bubbels",
-  ontbijt: "Ontbijt",
-  pannenkoeken: "Pannenkoeken",
-  wafels: "Wafels",
-  ijsjes: "Ijsjes",
-  taart: "Taartjes",
-  snacks: "Genietmomentjes",
-};
-
 const filteredProducts = useMemo(() => {
-  return products.filter(
-    (product) =>
-      product.category === CATEGORY_MAP[selectedCategory]
+  const category = categories.find(
+    (cat) => cat.id === selectedCategory
   );
-}, [selectedCategory]);
+
+  if (!category) return [];
+
+  return products.filter(
+    (product) => product.category === category.name
+  );
+}, [products, categories, selectedCategory]);
 
 function addProduct(product) {
   addItem(orderId, product);

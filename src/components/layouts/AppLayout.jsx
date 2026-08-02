@@ -51,51 +51,64 @@ export default function AppLayout({ children }) {
           borderBottom: "2px solid #D4AF37",
         }}
       >
-        <Toolbar>
-          {showBackButton && (
-            <Button
-              color="inherit"
-              startIcon={<ArrowBackIcon />}
-              onClick={goBack}
-              sx={{ mr: 1 }}
-            >
-              Terug
-            </Button>
-          )}
+       <Toolbar>
+  {showBackButton && (
+    <Button
+      color="inherit"
+      startIcon={<ArrowBackIcon />}
+      onClick={goBack}
+      sx={{
+        minWidth: "auto",
+        px: 1,
+        mr: 1,
+      }}
+    >
+      Terug
+    </Button>
+  )}
 
-          <Box sx={{ flexGrow: 1 }} />
+  <Box
+    sx={{
+      flexGrow: 1,
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+    }}
+  >
+    <Button
+      color={zone === "terras" ? "warning" : "inherit"}
+      onClick={() => navigate("/tables/terras")}
+    >
+      🏡
+    </Button>
 
-          <Button
-            color={zone === "terras" ? "warning" : "inherit"}
-            onClick={() => navigate("/tables/terras")}
-          >
-            🏡
-          </Button>
+    <Button
+      color={zone === "binnen" ? "warning" : "inherit"}
+      onClick={() => navigate("/tables/binnen")}
+    >
+      🪑
+    </Button>
 
-          <Button
-            color={zone === "binnen" ? "warning" : "inherit"}
-            onClick={() => navigate("/tables/binnen")}
-          >
-            🪑
-          </Button>
+    <Button
+      color={zone === "bar" ? "warning" : "inherit"}
+      onClick={() => navigate("/tables/bar")}
+    >
+      🍺
+    </Button>
 
-          <Button
-            color={zone === "bar" ? "warning" : "inherit"}
-            onClick={() => navigate("/tables/bar")}
-          >
-            🍺
-          </Button>
+    <Button
+      color="inherit"
+      onClick={() => navigate("/bar")}
+    >
+      🧾
+    </Button>
+  </Box>
+</Toolbar>
+</AppBar>
 
-          <Button
-            color="inherit"
-            onClick={() => navigate("/bar")}
-          >
-            🧾
-          </Button>
-        </Toolbar>
-      </AppBar>
-
-      <Box p={2}>{children}</Box>
-    </Box>
-  );
+<Box p={2}>
+  {children}
+</Box>
+</Box>
+);
 }

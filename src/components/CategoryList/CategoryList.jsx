@@ -4,12 +4,16 @@ import {
   Button,
   Typography,
 } from "@mui/material";
+import { useMediaQuery } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 
 export default function CategoryList({
   categories,
   selectedCategory,
   onSelect,
 }) {
+  const theme = useTheme();
+const mobile = useMediaQuery(theme.breakpoints.down("md"));
   return (
     <Paper
       elevation={3}
@@ -59,20 +63,10 @@ export default function CategoryList({
               },
             }}
           >
-            {{
-  frisdranken: "🥤 Fris",
-  waters: "💧 Water",
-  fruitsappen: "🧃 Sap",
-  bieren_vat: "🍺 Vat",
-  bieren_fles: "🍾 Fles",
-  aperitieven: "🥃 Apero",
-  sterke_dranken: "🥃 Sterk",
-  whisky: "🥃 Whisky",
-  mixers: "🥤 Mix",
-  cocktails: "🍸 Cockt.",
-  alcoholvrij: "🍹 0%",
-  wijnen: "🍷 Wijn",
-}[category.id] || category.naam}
+           <>
+  {category.icon}&nbsp;
+  {mobile ? category.shortName : category.name}
+</>
           </Button>
         ))}
       </Stack>

@@ -11,30 +11,31 @@ import CategoriesPage from "./pages/Categories/CategoriesPage";
 import FavoritesPage from "./pages/Favorites/FavoritesPage";
 import SettingsPage from "./pages/Settings/SettingsPage";
 
+
 export default function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<LoginPage />} />
+  return(
+  <BrowserRouter>
+    <Routes>
+      <Route path="/" element={<LoginPage />} />
 
-        <Route path="/dashboard" element={<DashboardPage />} />
+      <Route path="/dashboard" element={<DashboardPage />} />
 
-        <Route path="/tables/:zone" element={<TablesPage />} />
+      <Route path="/tables/:zone" element={<TablesPage />} />
 
-        <Route path="/order/:orderId" element={<OrderPage />} />
+      <Route path="/order/:orderId" element={<OrderPage />} />
 
-        <Route path="/bar" element={<BarPage />} />
+      <Route path="/bar" element={<BarPage />} />
 
-        <Route path="/products" element={<ProductsPage />} />
+      <Route path="/products" element={<ProductsPage />} />
 
-        <Route path="/categories" element={<CategoriesPage />} />
+      <Route path="/categories" element={<CategoriesPage />} />
 
-        <Route path="/favorites" element={<FavoritesPage />} />
+      <Route path="/favorites" element={<FavoritesPage />} />
 
-        <Route path="/settings" element={<SettingsPage />} />
+      <Route path="/settings" element={<SettingsPage />} />
 
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
-  );
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  </BrowserRouter>
+);
 }
