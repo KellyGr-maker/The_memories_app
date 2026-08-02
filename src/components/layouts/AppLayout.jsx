@@ -63,16 +63,7 @@ export default function AppLayout({ children }) {
             </Button>
           )}
 
-          <Typography
-            variant="h6"
-            sx={{
-              fontWeight: "bold",
-              color: "#D4AF37",
-              flexGrow: 1,
-            }}
-          >
-            The Memories Order
-          </Typography>
+          <Box sx={{ flexGrow: 1 }} />
 
           <Button
             color={zone === "terras" ? "warning" : "inherit"}
