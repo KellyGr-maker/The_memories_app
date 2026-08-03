@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import {
@@ -69,9 +69,13 @@ const freeTables = TABLES[currentOrder?.zone || "terras"].filter(
 );
 
   const [selectedCategory, setSelectedCategory] = useState(
-    categories[0].id
+    categories.length > 0 ? categories[0].id : ""
   );
-
+useEffect(() => {
+  if (!selectedCategory && categories.length > 0) {
+    setSelectedCategory(categories[0].id);
+  }
+}, [categories, selectedCategory]);
   const items = currentOrder?.items || [];
 
 const filteredProducts = useMemo(() => {
@@ -81,10 +85,13 @@ const filteredProducts = useMemo(() => {
 
   if (!category) return [];
 
-  return products.filter(
-    (product) => product.category === category.name
-  );
+  return products.filter((product) => {
+    if (!product) return false;
+
+    return product.category === category.name;
+  });
 }, [products, categories, selectedCategory]);
+
 
 function addProduct(product) {
   addItem(orderId, product);
