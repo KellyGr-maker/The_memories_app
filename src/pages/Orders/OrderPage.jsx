@@ -43,6 +43,21 @@ export default function OrderPage() {
 } = useOrders();
 
   const currentOrder = getOrder(orderId);
+  if (!currentOrder) {
+  return (
+    <AppLayout>
+      <Container sx={{ py: 3 }}>
+        <Typography variant="h5">
+          Bestelling niet gevonden.
+        </Typography>
+
+        <Typography color="text.secondary">
+          Ga terug naar het dashboard en open een tafel opnieuw.
+        </Typography>
+      </Container>
+    </AppLayout>
+  );
+}
   const { categories } = useCategories();
   const { products } = useProducts();
   const [moveDialogOpen, setMoveDialogOpen] = useState(false);
@@ -76,7 +91,7 @@ useEffect(() => {
     setSelectedCategory(categories[0].id);
   }
 }, [categories, selectedCategory]);
-  const items = currentOrder?.items || [];
+  const items = currentOrder.items;
 
 const filteredProducts = useMemo(() => {
   const category = categories.find(
@@ -85,9 +100,12 @@ const filteredProducts = useMemo(() => {
 
   if (!category) return [];
 
-  return products.filter(
-    (product) => product.category === category.name
-  );
+ return products.filter(
+  (product) => 
+    product &&
+    product.category === category.name
+);
+ 
 }, [products, categories, selectedCategory]);
 
 function addProduct(product) {
