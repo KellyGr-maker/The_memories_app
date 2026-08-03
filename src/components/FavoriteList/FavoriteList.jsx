@@ -34,7 +34,7 @@ export default function FavoriteList({
           gap: 1,
         }}
       >
-        {products.map((product) => (
+        {products ?? [].map((product) => (
           <Button
             key={product.id}
             fullWidth

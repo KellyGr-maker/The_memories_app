@@ -135,7 +135,7 @@ function moveToTable(table) {
   function splitCurrentOrder() {
     alert("Splitsen bouwen we straks af.");
   }
-
+console.log(filteredProducts);
   return (
     <AppLayout>
       <Container maxWidth="xl" sx={{ py: 2 }}>
@@ -200,6 +200,9 @@ function moveToTable(table) {
               minWidth: 0,
             }}
           >
+            <Typography>
+  Aantal producten: {filteredProducts?.length ?? "undefined"}
+</Typography>
             <FavoriteList
               products={filteredProducts}
               onAddProduct={addProduct}
