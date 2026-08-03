@@ -16,6 +16,12 @@ import {
   TextField,
 } from "@mui/material";
 
+import InputAdornment from "@mui/material/InputAdornment";
+import IconButton from "@mui/material/IconButton";
+
+import SearchIcon from "@mui/icons-material/Search";
+import ClearIcon from "@mui/icons-material/Clear";
+
 import AppLayout from "../../components/layouts/AppLayout";
 import CategoryList from "../../components/CategoryList/CategoryList";
 import FavoriteList from "../../components/FavoriteList/FavoriteList";
@@ -81,7 +87,7 @@ const freeTables = TABLES[currentOrder?.zone || "terras"].filter(
 );
 
   const [selectedCategory, setSelectedCategory] = useState("");
-
+  const [search, setSearch] = useState("");
 useEffect(() => {
   if (!selectedCategory && categories.length > 0) {
     setSelectedCategory(categories[0].id);
@@ -96,12 +102,20 @@ const filteredProducts = useMemo(() => {
 
   if (!category) return [];
 
- return products.filter(
-  (product) => 
-    product &&
-    product.category === category.name
-);
-}, [products, categories, selectedCategory]);
+  return products.filter((product) => {
+    if (!product) return false;
+
+    const matchesCategory =
+      product.category === category.name;
+
+    const matchesSearch =
+      product.name
+        .toLowerCase()
+        .includes(search.toLowerCase());
+
+    return matchesCategory && matchesSearch;
+  });
+}, [products, categories, selectedCategory, search]);
 
 function addProduct(product) {
   addItem(orderId, product);
@@ -146,7 +160,7 @@ function moveToTable(table) {
   function splitCurrentOrder() {
     alert("Splitsen bouwen we straks af.");
   }
-console.log(filteredProducts);
+
   return (
     <AppLayout>
       <Container maxWidth="xl" sx={{ py: 2 }}>
@@ -211,9 +225,55 @@ console.log(filteredProducts);
               minWidth: 0,
             }}
           >
+            <TextField
+  fullWidth
+  size="small"
+  placeholder="🔍 Zoek product..."
+  value={search}
+  onChange={(e) => setSearch(e.target.value)}
+  variant="outlined"
+  InputProps={{
+    startAdornment: (
+      <InputAdornment position="start">
+        <SearchIcon sx={{ color: "#bdbdbd" }} />
+      </InputAdornment>
+    ),
+    endAdornment: search ? (
+      <InputAdornment position="end">
+        <IconButton onClick={() => setSearch("")} edge="end">
+          <ClearIcon sx={{ color: "#bdbdbd" }} />
+        </IconButton>
+      </InputAdornment>
+    ) : undefined,
+  }}
+  sx={{
+    mb: 2,
+    "& .MuiOutlinedInput-root": {
+      bgcolor: "#2b2b2b",
+      color: "#fff",
+      borderRadius: 2,
+    },
+    "& .MuiOutlinedInput-input": {
+      color: "#fff",
+    },
+    "& .MuiOutlinedInput-input::placeholder": {
+      color: "#bdbdbd",
+      opacity: 1,
+    },
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#666",
+    },
+    "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#999",
+    },
+    "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#1976d2",
+    },
+  }}
+/>
             <Typography>
-  Aantal producten: {filteredProducts?.length ?? "undefined"}
-</Typography>
+ </Typography>
+
             <FavoriteList
               products={filteredProducts ??[]}
               onAddProduct={addProduct}

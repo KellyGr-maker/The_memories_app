@@ -49,7 +49,7 @@ export default function FavoriteList({
             }}
           >
             <span>{product.name}</span>
-            <span>€ {product.price.toFixed(2)}</span>
+            <span>€ {Number(product.price).toFixed(2)}</span>
           </Button>
         ))}
       </Box>

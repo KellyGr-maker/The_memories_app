@@ -21,17 +21,19 @@ import { useState } from "react";
 import { useOrders } from "../../context/OrderContext";
 
 const DRINK_CATEGORIES = [
-  "Frisdrank",
-  "Water",
+  "Frisdranken",
+  "Waters",
   "Fruitsappen",
-  "Bier van t vat",
-  "Bier op fles",
-  "Aperitieven/ sterke drank",
+  "Koffie & Thee",
+  "Bieren van 't vat",
+  "Bieren op fles",
+  "Aperitieven",
   "Jenever",
   "Sterke drank",
-  "Whiskys",
+  "Whisky",
   "Mixers",
-  "Coctails",
+  "Cocktails",
+  "Alcoholvrije cocktails",
   "Wijnen & Bubbels",
 ];
 
