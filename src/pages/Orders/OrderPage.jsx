@@ -85,11 +85,10 @@ const filteredProducts = useMemo(() => {
 
   if (!category) return [];
 
-  return products.filter((product) => {
-    if (!product) return false;
+  const filteredProducts = useMemo(() => {
+  return products;
+}, [products]);
 
-    return product.category === category.name;
-  });
 }, [products, categories, selectedCategory]);
 
 
