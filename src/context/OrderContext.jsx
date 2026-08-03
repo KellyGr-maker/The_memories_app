@@ -1,9 +1,15 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
 const OrderContext = createContext();
 
 export function OrderProvider({ children }) {
-  const [orders, setOrders] = useState([]);
+  const [orders, setOrders] = useState(() => {
+  const saved = localStorage.getItem("orders");
+  return saved ? JSON.parse(saved) : [];
+});
+useEffect(() => {
+  localStorage.setItem("orders", JSON.stringify(orders));
+}, [orders]);
 
   function createTableOrder(zone, table) {
     const order = {

@@ -43,16 +43,13 @@ export default function OrderPage() {
 } = useOrders();
 
   const currentOrder = getOrder(orderId);
+  
   if (!currentOrder) {
   return (
     <AppLayout>
       <Container sx={{ py: 3 }}>
         <Typography variant="h5">
           Bestelling niet gevonden.
-        </Typography>
-
-        <Typography color="text.secondary">
-          Ga terug naar het dashboard en open een tafel opnieuw.
         </Typography>
       </Container>
     </AppLayout>
@@ -83,9 +80,8 @@ const freeTables = TABLES[currentOrder?.zone || "terras"].filter(
     )
 );
 
-  const [selectedCategory, setSelectedCategory] = useState(
-    categories.length > 0 ? categories[0].id : ""
-  );
+  const [selectedCategory, setSelectedCategory] = useState("");
+
 useEffect(() => {
   if (!selectedCategory && categories.length > 0) {
     setSelectedCategory(categories[0].id);
@@ -105,7 +101,6 @@ const filteredProducts = useMemo(() => {
     product &&
     product.category === category.name
 );
- 
 }, [products, categories, selectedCategory]);
 
 function addProduct(product) {
@@ -220,7 +215,7 @@ console.log(filteredProducts);
   Aantal producten: {filteredProducts?.length ?? "undefined"}
 </Typography>
             <FavoriteList
-              products={filteredProducts}
+              products={filteredProducts ??[]}
               onAddProduct={addProduct}
             />
           </Box>
