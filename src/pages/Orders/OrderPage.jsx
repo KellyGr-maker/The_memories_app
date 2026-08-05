@@ -96,25 +96,29 @@ useEffect(() => {
   const items = currentOrder.items;
 
 const filteredProducts = useMemo(() => {
+  // Zoek in alle producten als er tekst is ingevoerd
+  if (search.trim() !== "") {
+    return products.filter((product) => {
+      if (!product) return false;
+
+      return product.name
+        .toLowerCase()
+        .includes(search.toLowerCase());
+    });
+  }
+
+  // Anders toon enkel de geselecteerde categorie
   const category = categories.find(
     (cat) => cat.id === selectedCategory
   );
 
   if (!category) return [];
 
-  return products.filter((product) => {
-    if (!product) return false;
-
-    const matchesCategory =
-      product.category === category.name;
-
-    const matchesSearch =
-      product.name
-        .toLowerCase()
-        .includes(search.toLowerCase());
-
-    return matchesCategory && matchesSearch;
-  });
+  return products.filter(
+    (product) =>
+      product &&
+      product.category === category.name
+  );
 }, [products, categories, selectedCategory, search]);
 
 function addProduct(product) {
