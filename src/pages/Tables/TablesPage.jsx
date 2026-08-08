@@ -18,7 +18,7 @@ import AppLayout from "../../components/layouts/AppLayout";
 import { useOrders } from "../../context/OrderContext";
 
 const TABLES = {
-  terras: ["1", "2", "3", "4", "5", "6", "7", "8"],
+  terras: ["4", "8", "3", "7", "2", "6", "1", "5"],
   binnen: ["1","2","3","4","5","6","7","8","9","10","11"],
   bar: ["1", "2", "3", "4", "5"],
 };

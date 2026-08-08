@@ -312,7 +312,91 @@ function clearOrder(orderId) {
         .filter((order) => order.id !== sourceId);
     });
   }
+function splitOrder(sourceId, targetOrder) {
+  setOrders((prev) => {
+    const sourceOrder = prev.find((order) => order.id === sourceId);
+    const targetOrderExists = prev.some(
+      (order) => order.id === targetOrder.id
+    );
 
+    if (!sourceOrder || !targetOrderExists) {
+      console.log("Split mislukt:", {
+        sourceId,
+        targetId: targetOrder?.id,
+      });
+      return prev;
+    }
+
+    const remainingItems = [];
+    const movedItems = [];
+
+    sourceOrder.items.forEach((item) => {
+      const requestedQuantity = Number(
+        targetOrder.quantities?.[item.orderItemId] || 0
+      );
+
+      const quantityToMove = Math.min(
+        Math.max(requestedQuantity, 0),
+        item.quantity
+      );
+
+      if (quantityToMove > 0) {
+        // Product dat naar de nieuwe bestelling gaat
+        movedItems.push({
+          ...item,
+          orderItemId: crypto.randomUUID(),
+          quantity: quantityToMove,
+        });
+
+        // Rest van het product blijft op de oorspronkelijke bestelling
+        if (item.quantity > quantityToMove) {
+          remainingItems.push({
+            ...item,
+            quantity: item.quantity - quantityToMove,
+          });
+        }
+      } else {
+        // Niet geselecteerd → volledig behouden
+        remainingItems.push(item);
+      }
+    });
+
+    // Er werd niets geselecteerd
+    if (movedItems.length === 0) {
+      console.log("Geen producten geselecteerd om te splitsen");
+      return prev;
+    }
+
+    console.log("Split uitgevoerd:", {
+      van: sourceId,
+      naar: targetOrder.id,
+      producten: movedItems,
+    });
+
+    return prev.map((order) => {
+      // Oorspronkelijke bestelling
+      if (order.id === sourceId) {
+        return {
+          ...order,
+          items: remainingItems,
+        };
+      }
+
+      // Doelbestelling
+      if (order.id === targetOrder.id) {
+        return {
+          ...order,
+          items: [
+            ...order.items,
+            ...movedItems,
+          ],
+        };
+      }
+
+      return order;
+    });
+  });
+}
   return (
     <OrderContext.Provider
       value={{
@@ -335,6 +419,7 @@ function clearOrder(orderId) {
         saveOrder,
         moveOrder,
         mergeOrders,
+        splitOrder,
       }}
     >
       {children}

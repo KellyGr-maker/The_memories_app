@@ -5,6 +5,7 @@ import {
   Stack,
   IconButton,
   Divider,
+  Checkbox,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -38,29 +39,32 @@ const DRINK_CATEGORIES = [
 ];
 
 function ItemRow({
+
   orderId,
   item,
   onIncrease,
   onDecrease,
+  splitMode,
+  selectedItems,
+  splitQuantities,
+  setSplitQuantities,
+  onToggleItem,
 }) {
+  console.log("splitQuantities =", splitQuantities);
   const { updateItemNote } = useOrders();
+
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
-const [note, setNote] = useState(item.note || "");
+  const [note, setNote] = useState(item.note || "");
 
-function openNoteDialog() {
-  setNote(item.note || "");
-  setNoteDialogOpen(true);
-}
+  function openNoteDialog() {
+    setNote(item.note || "");
+    setNoteDialogOpen(true);
+  }
 
-function saveNote() {
-  updateItemNote(
-    orderId,
-    item.orderItemId,
-    note
-  );
-
-  setNoteDialogOpen(false);
-}
+  function saveNote() {
+    updateItemNote(orderId, item.orderItemId, note);
+    setNoteDialogOpen(false);
+  }
 
   const statusColor = {
     pending: "warning.main",
@@ -74,23 +78,6 @@ function saveNote() {
     served: "✅ Gebracht",
   };
 
-function editNote() {
-  alert("klik");
-
-  const note = prompt(
-  "Opmerking",
-  item.note || ""
-);
-
-  if (note === null) return;
-
-  updateItemNote(
-    orderId,
-    item.orderItemId,
-    note
-  );
-}
-
   return (
     <Stack
       direction="row"
@@ -98,6 +85,55 @@ function editNote() {
       spacing={1}
       sx={{ py: 1 }}
     >
+      {splitMode && (
+  <Stack alignItems="center" spacing={1}>
+    <Checkbox
+      checked={selectedItems.includes(item.orderItemId)}
+      onChange={() => onToggleItem(item.orderItemId)}
+    />
+
+    {selectedItems.includes(item.orderItemId) && (
+      <Stack direction="row" spacing={1} alignItems="center">
+        <Button
+          size="small"
+          variant="outlined"
+          onClick={() =>
+            setSplitQuantities({
+              ...splitQuantities,
+              [item.orderItemId]: Math.max(
+                1,
+                (splitQuantities[item.orderItemId] || 1) - 1
+              ),
+            })
+          }
+        >
+          -
+        </Button>
+
+        <Typography>
+          {splitQuantities[item.orderItemId] || 1}
+        </Typography>
+
+        <Button
+          size="small"
+          variant="outlined"
+          onClick={() =>
+            setSplitQuantities({
+              ...splitQuantities,
+              [item.orderItemId]: Math.min(
+                item.quantity,
+                (splitQuantities[item.orderItemId] || 1) + 1
+              ),
+            })
+          }
+        >
+          +
+        </Button>
+      </Stack>
+    )}
+  </Stack>
+)}
+
       <Box sx={{ flex: 1 }}>
         <Typography fontWeight="bold">
           {item.name}
@@ -137,9 +173,7 @@ function editNote() {
 
       <IconButton
         color="error"
-        onClick={() =>
-          onDecrease(item.orderItemId)
-        }
+        onClick={() => onDecrease(item.orderItemId)}
       >
         <RemoveCircleIcon />
       </IconButton>
@@ -150,9 +184,7 @@ function editNote() {
 
       <IconButton
         color="success"
-        onClick={() =>
-          onIncrease(item.orderItemId)
-        }
+        onClick={() => onIncrease(item.orderItemId)}
       >
         <AddCircleIcon />
       </IconButton>
@@ -163,7 +195,6 @@ function editNote() {
       >
         <EditNoteIcon />
       </IconButton>
-   
 
       <Dialog
         open={noteDialogOpen}
@@ -171,9 +202,7 @@ function editNote() {
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle>
-          Opmerking
-        </DialogTitle>
+        <DialogTitle>Opmerking</DialogTitle>
 
         <DialogContent>
           <TextField
@@ -182,19 +211,13 @@ function editNote() {
             multiline
             minRows={3}
             value={note}
-            onChange={(e) =>
-              setNote(e.target.value)
-            }
+            onChange={(e) => setNote(e.target.value)}
             sx={{ mt: 1 }}
           />
         </DialogContent>
 
         <DialogActions>
-          <Button
-            onClick={() =>
-              setNoteDialogOpen(false)
-            }
-          >
+          <Button onClick={() => setNoteDialogOpen(false)}>
             Annuleren
           </Button>
 
@@ -206,12 +229,19 @@ function editNote() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Stack>)}
+    </Stack>
+  );
+}
 export default function OrderItems({
   orderId,
   order,
   onIncrease,
   onDecrease,
+  splitMode,
+  selectedItems,
+  splitQuantities,
+  setSplitQuantities,
+  onToggleItem,
 }) {
   const STATUS_ORDER = {
     pending: 0,
@@ -224,8 +254,8 @@ export default function OrderItems({
       (a, b) =>
         STATUS_ORDER[a.status] -
         STATUS_ORDER[b.status]
-    );
-
+    );    
+console.log(order);
   const drinks = sortByStatus(
     order.filter((item) =>
       DRINK_CATEGORIES.includes(item.category)
@@ -284,12 +314,17 @@ export default function OrderItems({
 
           {drinks.map((item) => (
             <Box key={item.orderItemId}>
-              <ItemRow
-                orderId={orderId}
-                item={item}
-                onIncrease={onIncrease}
-                onDecrease={onDecrease}
-              />
+           <ItemRow
+               orderId={orderId}
+               item={item}
+               onIncrease={onIncrease}
+               onDecrease={onDecrease}
+               splitMode={splitMode}
+               selectedItems={selectedItems}
+               splitQuantities={splitQuantities}
+               setSplitQuantities={setSplitQuantities}
+               onToggleItem={onToggleItem}
+/>
               <Divider />
             </Box>
           ))}
@@ -308,12 +343,17 @@ export default function OrderItems({
 
           {food.map((item) => (
             <Box key={item.orderItemId}>
-              <ItemRow
-                orderId={orderId}
-                item={item}
-                onIncrease={onIncrease}
-                onDecrease={onDecrease}
-              />
+            <ItemRow
+               orderId={orderId}
+               item={item}
+               onIncrease={onIncrease}
+               onDecrease={onDecrease}
+               splitMode={splitMode}
+               selectedItems={selectedItems}
+               splitQuantities={splitQuantities}
+               setSplitQuantities={setSplitQuantities}
+               onToggleItem={onToggleItem}
+/>
               <Divider />
             </Box>
           ))}

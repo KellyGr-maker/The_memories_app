@@ -14,6 +14,7 @@ import {
   DialogActions,
   Button,
   TextField,
+  Divider,
 } from "@mui/material";
 
 import InputAdornment from "@mui/material/InputAdornment";
@@ -40,12 +41,16 @@ export default function OrderPage() {
   orders,
   getOrder,
   saveOrder,
-  clearOrder,
   moveOrder,
+  mergeOrder,
+  clearOrder,
   mergeOrders,
   addItem,
   increaseItem,
   decreaseItem,
+  splitOrder,
+  createTableOrder,
+  createCustomerOrder,
 } = useOrders();
 
   const currentOrder = getOrder(orderId);
@@ -64,12 +69,19 @@ export default function OrderPage() {
   const { categories } = useCategories();
   const { products } = useProducts();
   const [moveDialogOpen, setMoveDialogOpen] = useState(false);
-
+  const [moveCustomerName, setMoveCustomerName] = useState("");
+  const [mergeDialogOpen, setMergeDialogOpen] = useState(false);
+  const [mergeCustomerName, setMergeCustomerName] = useState("");
+  const [splitMode, setSplitMode] = useState(false);
+  const [splitDialogOpen, setSplitDialogOpen] = useState(false);
+  const [splitCustomerName, setSplitCustomerName] = useState("");
+  const [selectedItems, setSelectedItems] = useState([]);
+  const [splitQuantities, setSplitQuantities] = useState({});
 
 const TABLES = {
-  terras: ["1", "2", "3", "4", "5", "6", "7", "8"],
-  binnen: ["1","2","3","4","5","6","7","8","9","10","11"],
-  bar: ["1","2","3","4","5"],
+  terras: ["4", "8", "3", "7", "2", "6", "1", "5"],
+  binnen: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"],
+  bar: ["1", "2", "3", "4", "5"],
 };
 
 const freeTables = TABLES[currentOrder?.zone || "terras"].filter(
@@ -149,22 +161,118 @@ function moveCurrentOrder() {
   setMoveDialogOpen(true);
 }
 
-function moveToTable(table) {
-  moveOrder(orderId, table);
+function moveToTable(zone, table) {
+  const newOrder = createTableOrder(zone, table);
+
+  mergeOrders(orderId, newOrder.id);
+
   setMoveDialogOpen(false);
 }
+
+function moveToNewCustomer() {
+  const name = moveCustomerName.trim();
+
+  if (!name) return;
+
+  const customer = createCustomerOrder(
+    currentOrder.zone,
+    name
+  );
+
+  mergeOrders(orderId, customer.id);
+
+  setMoveDialogOpen(false);
+  setMoveCustomerName("");
+}
   function mergeCurrentOrder() {
-    const otherOrder = prompt("Order ID om samen te voegen:");
+  setMergeDialogOpen(true);
+}
 
-    if (!otherOrder) return;
+function mergeToTable(zone, table) {
+  const newOrder = createTableOrder(zone, table);
 
-    mergeOrders(orderId, otherOrder);
+  mergeOrders(orderId, newOrder.id);
+
+  setMergeDialogOpen(false);
+}
+
+function mergeToExisting(targetOrderId) {
+  mergeOrders(orderId, targetOrderId);
+
+  setMergeDialogOpen(false);
+}
+
+function createMergeCustomer() {
+  const name = mergeCustomerName.trim();
+
+  if (!name) return;
+
+  const customer = createCustomerOrder(
+    currentOrder.zone,
+    name
+  );
+
+  mergeOrders(orderId, customer.id);
+
+  setMergeDialogOpen(false);
+  setMergeCustomerName("");
+}
+
+function splitCurrentOrder() {
+  setSplitMode(true);
+  setSplitDialogOpen(true);
+}
+
+function splitToTable(table) {
+  console.log("splitToTable", table);
+  const newOrder = createTableOrder(currentOrder.zone, table);
+  console.log("newOrder =", newOrder);
+
+  splitOrder(orderId, {
+    id: newOrder.id,
+    quantities: splitQuantities,
+  });
+
+  setSplitDialogOpen(false);
+  setSplitMode(false);
+  setSelectedItems([]);
+  setSplitQuantities({});
+}
+function splitToExisting(targetOrderId) {
+  splitOrder(orderId, {
+    id: targetOrderId,
+    quantities: splitQuantities,
+  });
+
+  setSplitDialogOpen(false);
+  setSplitMode(false);
+  setSelectedItems([]);
+  setSplitQuantities({});
+}
+
+function createSplitCustomer() {
+  const name = splitCustomerName.trim();
+
+  if (!name) {
+    return;
   }
 
-  function splitCurrentOrder() {
-    alert("Splitsen bouwen we straks af.");
-  }
+  const customer = createCustomerOrder(
+    currentOrder.zone,
+    name
+  );
 
+  splitOrder(orderId, {
+    id: customer.id,
+    quantities: splitQuantities,
+  });
+
+  setSplitDialogOpen(false);
+  setSplitMode(false);
+  setSelectedItems([]);
+  setSplitQuantities({});
+  setSplitCustomerName("");
+}
   return (
     <AppLayout>
       <Container maxWidth="xl" sx={{ py: 2 }}>
@@ -287,10 +395,29 @@ function moveToTable(table) {
 
         <Box sx={{ mb: 2 }}>
           <OrderItems
-             orderId={orderId}
-             order={items}
-             onIncrease={increase}
-             onDecrease={decrease}
+  orderId={orderId}
+  order={items}
+  onIncrease={increase}
+  onDecrease={decrease}
+  splitMode={splitMode}
+  selectedItems={selectedItems}
+  splitQuantities={splitQuantities}
+  setSplitQuantities={setSplitQuantities}
+  onToggleItem={(id) => {
+  console.log("Klik op:", id);
+
+  if (selectedItems.includes(id)) {
+    const nieuw = selectedItems.filter(
+      (itemId) => itemId !== id
+    );
+    console.log("Nieuw:", nieuw);
+    setSelectedItems(nieuw);
+  } else {
+    const nieuw = [...selectedItems, id];
+    console.log("Nieuw:", nieuw);
+    setSelectedItems(nieuw);
+  }
+}}
 />
         </Box>
 
@@ -311,19 +438,88 @@ function moveToTable(table) {
   open={moveDialogOpen}
   onClose={() => setMoveDialogOpen(false)}
 >
-  <DialogTitle>Verplaats bestelling</DialogTitle>
+  <DialogTitle>Bestelling verplaatsen</DialogTitle>
 
   <DialogContent>
-    <Stack spacing={1} sx={{ mt: 1, minWidth: 250 }}>
-      {freeTables.map((table) => (
-        <Button
-          key={table}
-          variant="contained"
-          onClick={() => moveToTable(table)}
-        >
-          Tafel {table}
-        </Button>
-      ))}
+    <Stack spacing={1} sx={{ minWidth: 320, mt: 1 }}>
+
+      <Typography fontWeight="bold">
+        🟢 Vrije tafels
+      </Typography>
+
+      {["terras", "binnen", "bar"].map((zone) => {
+        const freeZoneTables = TABLES[zone].filter((table) => {
+  const existingOrder = orders.find(
+    (order) =>
+      order.id !== orderId &&
+      order.type === "table" &&
+      order.zone === zone &&
+      String(order.table) === String(table)
+  );
+
+  // De huidige tafel niet tonen als bestemming
+  if (
+    zone === currentOrder.zone &&
+    String(table) === String(currentOrder.table)
+  ) {
+    return false;
+  }
+
+  return !existingOrder;
+});
+
+        if (freeZoneTables.length === 0) return null;
+
+        return (
+          <Box key={zone} sx={{ mb: 1 }}>
+            <Typography
+              variant="subtitle2"
+              fontWeight="bold"
+              sx={{ mb: 1 }}
+            >
+              {zone.charAt(0).toUpperCase() + zone.slice(1)}
+            </Typography>
+
+            <Stack spacing={1}>
+              {freeZoneTables.map((table) => (
+                <Button
+                  key={`${zone}-${table}`}
+                  fullWidth
+                  variant="contained"
+                  onClick={() => moveToTable(zone, table)}
+                >
+                  Tafel {table}
+                </Button>
+              ))}
+            </Stack>
+          </Box>
+        );
+      })}
+
+      <Divider sx={{ my: 2 }} />
+
+      <Typography fontWeight="bold">
+        👤 Nieuwe klant
+      </Typography>
+
+      <TextField
+        fullWidth
+        label="Naam nieuwe klant"
+        value={moveCustomerName}
+        onChange={(e) => setMoveCustomerName(e.target.value)}
+        placeholder="Bijv. Marleen"
+      />
+
+      <Button
+        fullWidth
+        color="secondary"
+        variant="contained"
+        disabled={!moveCustomerName.trim()}
+        onClick={moveToNewCustomer}
+      >
+        Nieuwe klant
+      </Button>
+
     </Stack>
   </DialogContent>
 
@@ -333,6 +529,259 @@ function moveToTable(table) {
     </Button>
   </DialogActions>
 </Dialog>
+<Dialog
+  open={mergeDialogOpen}
+  onClose={() => setMergeDialogOpen(false)}
+>
+  <DialogTitle>Bestelling samenvoegen</DialogTitle>
+
+  <DialogContent>
+    <Stack spacing={1} sx={{ minWidth: 320, mt: 1 }}>
+
+      {/* ========================= */}
+      {/* VRIJE TAFELS */}
+      {/* ========================= */}
+
+      <Typography fontWeight="bold">
+        🟢 Vrije tafels
+      </Typography>
+
+      {["terras", "binnen", "bar"].map((zone) => {
+        const freeZoneTables = TABLES[zone].filter((table) => {
+          const existingOrder = orders.find(
+            (order) =>
+              order.type === "table" &&
+              order.zone === zone &&
+              order.table === table
+          );
+
+          return !existingOrder;
+        });
+
+        if (freeZoneTables.length === 0) return null;
+
+        return (
+          <Box key={`free-${zone}`} sx={{ mb: 1 }}>
+            <Typography
+              variant="subtitle2"
+              fontWeight="bold"
+              sx={{ mb: 1 }}
+            >
+              {zone.charAt(0).toUpperCase() + zone.slice(1)}
+            </Typography>
+
+            <Stack spacing={1}>
+              {freeZoneTables.map((table) => (
+                <Button
+                  key={`${zone}-${table}`}
+                  fullWidth
+                  variant="contained"
+                  onClick={() => mergeToTable(zone, table)}
+                >
+                  Tafel {table}
+                </Button>
+              ))}
+            </Stack>
+          </Box>
+        );
+      })}
+
+      <Divider sx={{ my: 2 }} />
+
+      {/* ========================= */}
+      {/* BESTAANDE KLANTEN */}
+      {/* ========================= */}
+
+      <Typography fontWeight="bold">
+        👥 Bestaande klanten
+      </Typography>
+
+      {["terras", "binnen", "bar"].map((zone) => {
+        const zoneOrders = orders.filter(
+          (order) =>
+            order.id !== orderId &&
+            order.items?.length > 0 &&
+            order.zone === zone
+        );
+
+        if (zoneOrders.length === 0) return null;
+
+        return (
+          <Box key={`existing-${zone}`} sx={{ mb: 1 }}>
+            <Typography
+              variant="subtitle2"
+              fontWeight="bold"
+              sx={{ mb: 1 }}
+            >
+              {zone.charAt(0).toUpperCase() + zone.slice(1)}
+            </Typography>
+
+            <Stack spacing={1}>
+              {zoneOrders.map((order) => (
+                <Button
+                  key={order.id}
+                  fullWidth
+                  variant="outlined"
+                  onClick={() => mergeToExisting(order.id)}
+                >
+                  {order.type === "customer"
+                    ? `👤 ${order.name}`
+                    : `🍽️ Tafel ${order.table}`}
+                </Button>
+              ))}
+            </Stack>
+          </Box>
+        );
+      })}
+
+      <Divider sx={{ my: 2 }} />
+
+      {/* ========================= */}
+      {/* NIEUWE KLANT */}
+      {/* ========================= */}
+
+      <Typography fontWeight="bold">
+        👤 Nieuwe klant
+      </Typography>
+
+      <TextField
+        fullWidth
+        label="Naam nieuwe klant"
+        value={mergeCustomerName}
+        onChange={(e) => setMergeCustomerName(e.target.value)}
+        placeholder="Bijv. Marleen"
+      />
+
+      <Button
+        fullWidth
+        color="secondary"
+        variant="contained"
+        disabled={!mergeCustomerName.trim()}
+        onClick={createMergeCustomer}
+      >
+        Nieuwe klant
+      </Button>
+
+    </Stack>
+  </DialogContent>
+
+  <DialogActions>
+    <Button onClick={() => setMergeDialogOpen(false)}>
+      Annuleren
+    </Button>
+  </DialogActions>
+</Dialog>
+  open={splitDialogOpen}
+  onClose={() => setSplitDialogOpen(false)}
+
+  <DialogTitle>Producten splitsen</DialogTitle>
+
+  <DialogContent>
+    <Stack spacing={1} sx={{ minWidth: 300, mt: 1 }}>
+
+      {["terras", "binnen", "bar"].map((zone) => {
+  const zoneTables = freeTables.filter((table) =>
+    TABLES[zone].includes(table)
+  );
+
+  if (zoneTables.length === 0) return null;
+
+  return (
+    <Box key={zone} sx={{ mb: 2 }}>
+      <Typography
+        variant="subtitle2"
+        fontWeight="bold"
+        sx={{ mb: 1 }}
+      >
+        {zone.charAt(0).toUpperCase() + zone.slice(1)}
+      </Typography>
+
+      <Stack spacing={1}>
+        {zoneTables.map((table) => (
+          <Button
+            key={table}
+            variant="contained"
+            onClick={() => splitToTable(table)}
+          >
+            Tafel {table}
+          </Button>
+        ))}
+      </Stack>
+    </Box>
+  );
+})}
+
+<Divider sx={{ my: 2 }} />
+<Typography fontWeight="bold">
+🍽️ Bestaande bestellingen
+</Typography>
+
+{["terras", "binnen", "bar"].map((zone) => {
+  const zoneOrders = orders.filter(
+    (order) =>
+      order.id !== orderId &&
+      order.type === "table" &&
+      order.zone === zone &&
+      order.items.length > 0
+  );
+
+  if (zoneOrders.length === 0) return null;
+
+  return (
+    <Box key={zone} sx={{ mb: 2 }}>
+      <Typography
+        variant="subtitle2"
+        fontWeight="bold"
+        sx={{ mb: 1 }}
+      >
+        {zone.charAt(0).toUpperCase() + zone.slice(1)}
+      </Typography>
+
+      <Stack spacing={1}>
+        {zoneOrders.map((order) => (
+          <Button
+            key={order.id}
+            variant="outlined"
+            onClick={() => splitToExisting(order.id)}
+          >
+            Tafel {order.table} ({order.items.length})
+          </Button>
+        ))}
+      </Stack>
+    </Box>
+  );
+})}
+
+<Divider sx={{ my: 2 }} />
+
+      <Typography fontWeight="bold">
+👤 Nieuwe klant
+</Typography>
+<TextField
+  fullWidth
+  label="Naam nieuwe klant"
+  value={splitCustomerName}
+  onChange={(e) => setSplitCustomerName(e.target.value)}
+  placeholder="Bijv. Jan"
+  sx={{ mb: 1 }}
+/>
+<Button
+  fullWidth
+  color="secondary"
+  variant="contained"
+  onClick={createSplitCustomer}
+>
+  Nieuwe klant
+</Button>
+
+    </Stack>
+  </DialogContent>
+
+  <DialogActions>
+    <Button onClick={() => setSplitDialogOpen(false)}>
+      Annuleren
+    </Button>
+  </DialogActions>
 
               </Container>
     </AppLayout>
